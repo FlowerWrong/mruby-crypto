@@ -15,10 +15,6 @@ class MrbCrypotTest < MTest::Unit::TestCase
     t = Crypto.new "hello"
     assert_equal("hello bye", t.bye)
   end
-
-  def test_hi
-    assert_equal("hi!!", Crypto.hi)
-  end
 end
 
 if $ok_test
