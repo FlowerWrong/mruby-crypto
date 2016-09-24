@@ -80,19 +80,37 @@ static mrb_value mrb_encrypt(mrb_state *mrb, mrb_value self) {
   EVP_EncryptUpdate(&ctx, ciphertext, &cipher_length, RSTRING_PTR(source), source_len);
   EVP_EncryptFinal_ex(&ctx, ciphertext + cipher_length, &final_length);
 
-  for (i = 0; i < cipher_length + final_length; i++)
-    printf("%02x", ciphertext[i]);
-  printf("\n");
-
-  // free(ciphertext);
   EVP_CIPHER_CTX_cleanup(&ctx);
 
   return mrb_str_new(mrb, ciphertext, strlen(ciphertext));
 }
 static mrb_value mrb_decrypt(mrb_state *mrb, mrb_value self) {
-  mrb_crypto_data *data = DATA_PTR(self);
+  mrb_value method, source, key, iv;
+  unsigned char *plaintext;
+  mrb_get_args(mrb, "SSSS", &method, &source, &key, &iv);
 
-  return mrb_str_new(mrb, data->str, data->len);
+  const EVP_CIPHER *cipher;
+  OpenSSL_add_all_algorithms();
+  cipher = EVP_get_cipherbyname(RSTRING_PTR(method));
+  if (!cipher) {
+    return mrb_nil_value();
+  }
+
+  EVP_CIPHER_CTX ctx;
+  EVP_CIPHER_CTX_init(&ctx);
+
+  int length_partial = 0, length = 0;
+  mrb_int source_len = RSTRING_LEN(source);
+
+  plaintext = (unsigned char *)malloc(source_len);
+
+	EVP_DecryptInit_ex(&ctx, cipher, NULL, RSTRING_PTR(key), RSTRING_PTR(iv));
+  EVP_DecryptUpdate(&ctx, plaintext, &length_partial, RSTRING_PTR(source), source_len);
+  EVP_DecryptFinal_ex(&ctx, plaintext + length_partial, &length);
+
+  EVP_CIPHER_CTX_cleanup(&ctx);
+
+  return mrb_str_new(mrb, plaintext, strlen(plaintext));
 }
 
 static mrb_value mrb_crypto_hello(mrb_state *mrb, mrb_value self)

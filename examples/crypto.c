@@ -8,14 +8,14 @@
 #define SUCCESS 1
 #define ERROR 0
 
-int encrypt(const char *plain, int plain_size, char **encrypted, char **return_iv, const char *method, const char *pass, const char *salt) {
+void encrypt(const char *plain, int plain_size, const char *method, const char *pass, const char *salt) {
 	const EVP_CIPHER *cipher;
 	OpenSSL_add_all_algorithms();
 	printf("method is %s\n", method);
 	cipher = EVP_get_cipherbyname(method);
 	if(!cipher) {
 		fprintf(stderr, "no such cipher\n");
-		return -1;
+		exit;
 	}
 
 	int cipher_key_length, cipher_iv_length;
@@ -27,16 +27,13 @@ int encrypt(const char *plain, int plain_size, char **encrypted, char **return_i
 
   if (strlen(key) != cipher_key_length) {
     fprintf(stderr, "Error: key length must be %d\n", cipher_key_length);
-    return -1;
+    exit;
   }
   if (strlen(iv) != cipher_iv_length) {
     fprintf(stderr, "Error: iv length must be %d\n", cipher_iv_length);
-    return -1;
+    exit;
   }
-
-	return_iv = iv;
 	printf("iv is %s\n", iv);
-	printf("return_iv is %s\n", return_iv);
 
   EVP_CIPHER_CTX ctx;
   int i, cipher_length, final_length;
@@ -55,12 +52,19 @@ int encrypt(const char *plain, int plain_size, char **encrypted, char **return_i
     printf("%02x", ciphertext[i]);
   printf("\n");
 
-	encrypted = ciphertext;
-	int en_data_len = strlen(encrypted);
-
-  free(ciphertext);
+	int en_data_len = strlen(ciphertext);
 
   EVP_CIPHER_CTX_cleanup(&ctx);
 
-	return final_length;
+	char *plaintext;
+	plaintext = (unsigned char *)malloc(cipher_length);
+	int length_partial, length = 0;
+	EVP_CIPHER_CTX dectx;
+  EVP_CIPHER_CTX_init(&dectx);
+	EVP_DecryptInit_ex(&dectx, cipher, NULL, key, iv);
+  EVP_DecryptUpdate(&dectx, plaintext, &length_partial, ciphertext, en_data_len);
+  EVP_DecryptFinal_ex(&dectx, plaintext + length_partial, &length);
+  printf("plaintext is %s\n", plaintext);
+
+  EVP_CIPHER_CTX_cleanup(&dectx);
 }
