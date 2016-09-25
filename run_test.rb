@@ -21,6 +21,7 @@ MRuby::Build.new do |conf|
 
   conf.gem github: 'iij/mruby-mtest'
 
+  ENV['test'] = 'yes'
   conf.gem File.expand_path(File.dirname(__FILE__))
   conf.cc.flags << '-I/usr/local/opt/openssl/include'
   conf.linker.flags << '-L/usr/local/opt/openssl/lib -lcrypto -lz'

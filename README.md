@@ -13,6 +13,17 @@ MRuby::Build.new do |conf|
 end
 ```
 
+## Add openssl
+
+```bash
+cd mruby/build/host/mrbgems/mruby-crypto
+curl https://www.openssl.org/source/openssl-1.0.2a.tar.gz | tar xzf -
+cd openssl-1.0.2a
+./Configure darwin64-x86_64-cc --openssldir=`pwd`/../openssldir no-shared no-threads
+make
+make install_sw
+```
+
 ## test
 
 ```
