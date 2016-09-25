@@ -7,8 +7,6 @@
 */
 
 #include <openssl/evp.h>
-#include <openssl/aes.h>
-#include <openssl/des.h>
 
 #include <string.h>
 #include <stdio.h>
